@@ -36,6 +36,17 @@ namespace CodeAnalyze.Services {
 			return SetsList.Any(i => i.Name == name);
 		}
 
+		public static async Task UpdateSet(Set set) {
+			if(set == null) {
+				return;
+			}
+			var found = SetsList.Find(s => s.Name == set.Name);
+			if(found != null) {
+				found.Files = set.Files;
+				await Save();
+			}
+		}
+
 		public static async Task<bool> Add(Set ignores) {
 			if(CheckNameDuplicate(ignores.Name)) {
 				return false;
@@ -61,10 +72,27 @@ namespace CodeAnalyze.Services {
 				new Set("Visual Studio For UWP"){
 					Files = new List<string> {
 						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
-					},
-					IgnoreFolders =new List<string> {
-						".git", ".vs", "AppPackages", "Assets", "bin", "BundleArtifacts", "obj", "Pictures", "Properties", "Releases"
-					},
+					}
+				},
+				new Set("Visual Studio For UWP"){
+					Files = new List<string> {
+						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
+					}
+				},
+				new Set("Visual Studio For UWP"){
+					Files = new List<string> {
+						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
+					}
+				},
+				new Set("Visual Studio For UWP"){
+					Files = new List<string> {
+						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
+					}
+				},
+				new Set("Visual Studio For UWP"){
+					Files = new List<string> {
+						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
+					}
 				},
 			};
 		}

@@ -10,39 +10,39 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     d:RequestedTheme="Dark">
 
-	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="auto"/>
-			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions>
-		<RelativePanel>
-			<Button x:Name="ManageButton" RelativePanel.AlignLeftWithPanel="True" Margin="10" FontSize="18" Tapped="ManageButton_Tapped">
-				<StackPanel Orientation="Horizontal">
-					<FontIcon Glyph="&#xE912;"/>
-					<TextBlock Text="Manage Ignores" Margin="10,0,0,0"/>
-				</StackPanel>
-			</Button>
-			<TextBlock x:Name="IgnoresText" Text="UWP for Visual Studio" RelativePanel.RightOf="ManageButton" RelativePanel.AlignVerticalCenterWithPanel="True" FontSize="22" Margin="10,0,0,0"/>
-			<TextBlock x:Name="RootText" Text="F:\UWP\E621Downloader" RelativePanel.LeftOf="StartButton" RelativePanel.AlignVerticalCenterWithPanel="True" FontSize="22" Margin="10,0,0,0"/>
-			<Button x:Name="SelectButton" RelativePanel.AlignRightWithPanel="True" Margin="10" FontSize="18">
-				<StackPanel Orientation="Horizontal">
-					<FontIcon Glyph="&#xE15E;"/>
-					<TextBlock Text="Select" Margin="10,0,0,0"/>
-				</StackPanel>
-			</Button>
-			<Button x:Name="StartButton" RelativePanel.LeftOf="SelectButton" Margin="10" FontSize="18">
-				<StackPanel Orientation="Horizontal">
-					<FontIcon Glyph="&#xE102;"/>
-					<TextBlock Text="Start" Margin="10,0,0,0"/>
-				</StackPanel>
-			</Button>
-		</RelativePanel>
-		<Frame x:Name="MainFrame" Grid.Row="1">
-			<Frame.ContentTransitions>
-				<TransitionCollection>
-					<NavigationThemeTransition/>
-				</TransitionCollection>
-			</Frame.ContentTransitions>
-		</Frame>
-	</Grid>
+	<controls:NavigationView IsBackButtonVisible="Collapsed" PaneDisplayMode="Top" IsSettingsVisible="False">
+		<controls:NavigationView.MenuItems>
+			<controls:NavigationViewItem Content="Manage Sets" Tag="0" Icon="Manage" IsSelected="True"/>
+			<controls:NavigationViewItem Content="Result" Tag="1" Icon="ShowResults"/>
+		</controls:NavigationView.MenuItems>
+		<controls:NavigationView.PaneFooter>
+			<StackPanel Orientation="Horizontal" Height="50">
+				<TextBlock x:Name="RootText" Text="Hello g world" VerticalAlignment="Center" Margin="10" FontSize="18"/>
+				<Button x:Name="SelectButton" RelativePanel.AlignRightWithPanel="True" Margin="10" Tapped="SelectButton_Tapped">
+					<StackPanel Orientation="Horizontal">
+						<FontIcon Glyph="&#xE15E;" FontSize="16"/>
+						<TextBlock Text="Select" Margin="10,0,0,0" FontSize="15"/>
+					</StackPanel>
+				</Button>
+				<Button x:Name="StartButton" RelativePanel.LeftOf="SelectButton" Margin="10" Tapped="StartButton_Tapped">
+					<StackPanel Orientation="Horizontal">
+						<FontIcon Glyph="&#xE102;" FontSize="16"/>
+						<TextBlock Text="Start" Margin="10,0,0,0" FontSize="15"/>
+					</StackPanel>
+				</Button>
+			</StackPanel>
+		</controls:NavigationView.PaneFooter>
+		<controls:NavigationView.FooterMenuItems>
+			<controls:NavigationViewItem Content="Help" Tag="SamplePage5" Icon="Help"/>
+		</controls:NavigationView.FooterMenuItems>
+		<controls:NavigationView.Content>
+			<Frame x:Name="MainFrame" Grid.Row="1">
+				<Frame.ContentTransitions>
+					<TransitionCollection>
+						<NavigationThemeTransition />
+					</TransitionCollection>
+				</Frame.ContentTransitions>
+			</Frame>
+		</controls:NavigationView.Content>
+	</controls:NavigationView>
 </Page>

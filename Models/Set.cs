@@ -8,7 +8,6 @@ namespace CodeAnalyze.Models {
 	public class Set {
 		public string Name { get; set; }
 		public List<string> Files { get; set; } = new List<string>();
-		public List<string> IgnoreFolders { get; set; } = new List<string>();
 
 		public Set(string name) {
 			Name = name;
