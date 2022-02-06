@@ -10,65 +10,124 @@
 	mc:Ignorable="d"
     d:RequestedTheme="Dark"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
 	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="2*"/>
-		</Grid.ColumnDefinitions>
-		<Grid>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="*"/>
-				<RowDefinition Height="auto"/>
-			</Grid.RowDefinitions>
-			<ProgressRing x:Name="LoadingRing" Width="50" Height="50"/>
-			<ListView x:Name="SetsListView" ItemsSource="{x:Bind Sets}" SelectionMode="Single" IsItemClickEnabled="False" SelectionChanged="SetsListView_SelectionChanged" SelectedIndex="0" Padding="10">
-				<ListView.ItemContainerStyle>
-					<Style TargetType="ListViewItem">
-						<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-						<Setter Property="VerticalContentAlignment" Value="Stretch"/>
-					</Style>
-				</ListView.ItemContainerStyle>
-				<ListView.Template>
-					<ControlTemplate>
-						<Border CornerRadius="5" Margin="10">
-							<ItemsPresenter/>
-						</Border>
-					</ControlTemplate>
-				</ListView.Template>	
-				<ListView.ItemTemplate>
-					<DataTemplate x:DataType="models:Set">
-						<StackPanel RightTapped="SetsListViewItemPanel_RightTapped" Tag="{x:Bind Name}" Orientation="Horizontal">
-							<FontIcon Glyph="&#xF127;" FontSize="8"/>
-							<TextBlock Text="{x:Bind Name}" VerticalAlignment="Center" FontSize="16" Margin="10,0,0,0"/>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<Button x:Name="StartButton" HorizontalAlignment="Stretch" Margin="10" Tapped="StartButton_Tapped">
+			<StackPanel Orientation="Horizontal">
+				<FontIcon Glyph="&#xE102;" FontSize="22"/>
+				<TextBlock Text="Start" Margin="20,0,0,0" FontSize="22"/>
+			</StackPanel>
+		</Button>
+		<Grid Grid.Row="1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="2*"/>
+			</Grid.ColumnDefinitions>
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="auto"/>
+				</Grid.RowDefinitions>
+				<ProgressRing x:Name="SetsLoadingRing" Width="50" Height="50"/>
+				<ListView x:Name="SetsListView" ItemsSource="{x:Bind Sets}" d:ItemsSource="12 3 4" SelectionMode="Single" IsItemClickEnabled="False" SelectionChanged="SetsListView_SelectionChanged" SelectedIndex="0" Padding="10">
+					<ListView.ItemContainerStyle>
+						<Style TargetType="ListViewItem">
+							<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+							<Setter Property="VerticalContentAlignment" Value="Stretch"/>
+						</Style>
+					</ListView.ItemContainerStyle>
+					<ListView.Template>
+						<ControlTemplate>
+							<Border CornerRadius="5" Margin="10">
+								<ItemsPresenter/>
+							</Border>
+						</ControlTemplate>
+					</ListView.Template>
+					<ListView.ItemTemplate>
+						<DataTemplate x:DataType="models:Set">
+							<Grid RightTapped="SetsListViewItemPanel_RightTapped" Tag="{x:Bind Name, Mode=OneWay}" HorizontalAlignment="Stretch">
+								<Rectangle Fill="Gray" Opacity="0.01" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+								<FontIcon Glyph="&#xF127;" FontSize="8" HorizontalAlignment="Left"/>
+								<TextBlock Text="{x:Bind Name, Mode=OneWay}" d:Text="Hello World" VerticalAlignment="Center" FontSize="16" Margin="20,0,0,0"/>
+							</Grid>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
+				<Button x:Name="AddSetButton" Grid.Row="1" Margin="10" HorizontalAlignment="Stretch" Tapped="AddSetButton_Tapped">
+					<StackPanel Orientation="Horizontal">
+						<FontIcon Glyph="&#xE109;" FontSize="18"/>
+						<TextBlock Text="Add" Margin="10,0,0,0" FontSize="18"/>
+					</StackPanel>
+				</Button>
+			</Grid>
+			<Grid Grid.Column="1">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="auto"/>
+				</Grid.RowDefinitions>
+				<ListView x:Name="FileTypeInputsListView" SelectionMode="None" IsItemClickEnabled="False">
+					<ListView.ItemContainerStyle>
+						<Style TargetType="ListViewItem">
+							<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+							<Setter Property="VerticalContentAlignment" Value="Stretch"/>
+						</Style>
+					</ListView.ItemContainerStyle>
+				</ListView>
+				<controls:Expander Grid.Row="1" HorizontalAlignment="Stretch" Margin="5" HorizontalContentAlignment="Stretch" IsExpanded="True">
+					<controls:Expander.Header>
+						<Grid>
+							<TextBlock Text="Files Statistics"/>
+							<ProgressRing x:Name="FilesStatisticsLoadingRing" IsActive="True" HorizontalAlignment="Right"/>
+						</Grid>
+					</controls:Expander.Header>
+					<controls:Expander.Content>
+						<StackPanel x:Name="FilesStatisticsPanel">
+							<StackPanel.ChildrenTransitions>
+								<TransitionCollection>
+									<EntranceThemeTransition IsStaggeringEnabled="True" />
+								</TransitionCollection>
+							</StackPanel.ChildrenTransitions>
 						</StackPanel>
+					</controls:Expander.Content>
+				</controls:Expander>
+			</Grid>
+			<StackPanel x:Name="FoldersLoadingPanel" Grid.Column="2" Margin="50" VerticalAlignment="Center" HorizontalAlignment="Center">
+				<ProgressRing x:Name="FoldersLoadingRing" IsActive="True" Height="50" Width="50" Margin="10"/>
+				<TextBlock x:Name="FoldersLoadingText" d:Text="Loading: test/" Margin="10" TextAlignment="Center" TextWrapping="Wrap"/>
+			</StackPanel>
+			<controls:TreeView x:Name="FolderTreeView" Grid.Column="2" SelectionMode="Multiple" Margin="5" CanDragItems="False" AllowDrop="False">
+				<controls:TreeView.ItemTemplate>
+					<DataTemplate x:DataType="models:FolderItem">
+						<controls:TreeViewItem ItemsSource="{x:Bind Children}" IsSelected="{x:Bind IsSelected, Mode=TwoWay}" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}">
+							<controls:TreeViewItem.Content>
+								<Grid>
+									<TextBlock Text="{x:Bind Name}"/>
+									<TextBlock Text="..." HorizontalAlignment="Right" Margin="0,0,20,0" Tag="{x:Bind Folder}" Loaded="TextBlock_Loaded"/>
+								</Grid>
+							</controls:TreeViewItem.Content>
+						</controls:TreeViewItem>
 					</DataTemplate>
-				</ListView.ItemTemplate>
-			</ListView>
-			<Button x:Name="AddSetButton" Grid.Row="1" Margin="10" HorizontalAlignment="Stretch" Tapped="AddSetButton_Tapped">
-				<StackPanel Orientation="Horizontal">
-					<FontIcon Glyph="&#xE109;" FontSize="18"/>
-					<TextBlock Text="Add" Margin="10,0,0,0" FontSize="18"/>
-				</StackPanel>
-			</Button>
+				</controls:TreeView.ItemTemplate>
+			</controls:TreeView>
 		</Grid>
-
-		<ListView x:Name="FileTypeInputsListView" Grid.Column="1" SelectionMode="None" IsItemClickEnabled="False">
-			<ListView.ItemContainerStyle>
-				<Style TargetType="ListViewItem">
-					<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-					<Setter Property="VerticalContentAlignment" Value="Stretch"/>
-				</Style>
-			</ListView.ItemContainerStyle>
-		</ListView>
-
-		<controls:TreeView x:Name="FolderTreeView" Grid.Column="2" SelectionMode="Multiple" Margin="5">
-			<controls:TreeView.ItemTemplate>
-				<DataTemplate x:DataType="models:FolderItem">
-					<controls:TreeViewItem ItemsSource="{x:Bind Children}" Content="{x:Bind Name}" IsSelected="{x:Bind IsSelected, Mode=TwoWay}" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"/>
-				</DataTemplate>
-			</controls:TreeView.ItemTemplate>
-		</controls:TreeView>
+		<controls:TeachingTip x:Name="NoFoldersSelectedTip" Target="{x:Bind FolderTreeView}" Title="Warning" Subtitle="You have not selected any folder" IsLightDismissEnabled="True" PreferredPlacement="Auto">
+			<controls:TeachingTip.IconSource>
+				<controls:SymbolIconSource Symbol="Important"/>
+			</controls:TeachingTip.IconSource>
+		</controls:TeachingTip>
+		<controls:TeachingTip x:Name="NoFileTypeInputTip" Title="Warning" Subtitle="You do not have any file type input" IsLightDismissEnabled="True" PreferredPlacement="Bottom">
+			<controls:TeachingTip.IconSource>
+				<controls:SymbolIconSource Symbol="Important"/>
+			</controls:TeachingTip.IconSource>
+		</controls:TeachingTip>
+		<controls:TeachingTip x:Name="EmptyFileTypeInputTip" Title="Warning" Subtitle="The File Type Input is Empty" IsLightDismissEnabled="True" PreferredPlacement="Right">
+			<controls:TeachingTip.IconSource>
+				<controls:SymbolIconSource Symbol="Important"/>
+			</controls:TeachingTip.IconSource>
+		</controls:TeachingTip>
 	</Grid>
 </Page>

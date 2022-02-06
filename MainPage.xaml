@@ -10,9 +10,9 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     d:RequestedTheme="Dark">
 
-	<controls:NavigationView IsBackButtonVisible="Collapsed" PaneDisplayMode="Top" IsSettingsVisible="False">
+	<controls:NavigationView x:Name="MainNavigationView" IsBackButtonVisible="Collapsed" PaneDisplayMode="Top" IsSettingsVisible="True" ItemInvoked="NavigationView_ItemInvoked">
 		<controls:NavigationView.MenuItems>
-			<controls:NavigationViewItem Content="Manage Sets" Tag="0" Icon="Manage" IsSelected="True"/>
+			<controls:NavigationViewItem Content="Manage" Tag="0" Icon="Manage" IsSelected="True"/>
 			<controls:NavigationViewItem Content="Result" Tag="1" Icon="ShowResults"/>
 		</controls:NavigationView.MenuItems>
 		<controls:NavigationView.PaneFooter>
@@ -24,16 +24,10 @@
 						<TextBlock Text="Select" Margin="10,0,0,0" FontSize="15"/>
 					</StackPanel>
 				</Button>
-				<Button x:Name="StartButton" RelativePanel.LeftOf="SelectButton" Margin="10" Tapped="StartButton_Tapped">
-					<StackPanel Orientation="Horizontal">
-						<FontIcon Glyph="&#xE102;" FontSize="16"/>
-						<TextBlock Text="Start" Margin="10,0,0,0" FontSize="15"/>
-					</StackPanel>
-				</Button>
 			</StackPanel>
 		</controls:NavigationView.PaneFooter>
 		<controls:NavigationView.FooterMenuItems>
-			<controls:NavigationViewItem Content="Help" Tag="SamplePage5" Icon="Help"/>
+			<controls:NavigationViewItem Content="Help" Tag="2" Icon="Help"/>
 		</controls:NavigationView.FooterMenuItems>
 		<controls:NavigationView.Content>
 			<Frame x:Name="MainFrame" Grid.Row="1">

@@ -13,7 +13,7 @@ namespace CodeAnalyze.Models {
 
 		public StorageFolder Folder { get; private set; }
 		public List<FolderItem> Children { get; private set; }
-
+		public Dictionary<string, long> FilesCount { get; private set; }
 		public string Name => Folder?.DisplayName ?? "NULL";
 
 		private bool isSelected;
@@ -44,11 +44,13 @@ namespace CodeAnalyze.Models {
 		public FolderItem(StorageFolder folder) {
 			Folder = folder;
 			Children = new List<FolderItem>();
+			FilesCount = new Dictionary<string, long>();
 		}
 
 		public FolderItem(StorageFolder folder, IEnumerable<FolderItem> children) {
 			Folder = folder;
 			Children = new List<FolderItem>(children);
+			FilesCount = new Dictionary<string, long>();
 		}
 
 		private void NotifyPropertyChanged(string propertyName) {
@@ -56,7 +58,7 @@ namespace CodeAnalyze.Models {
 		}
 
 		public override string ToString() {
-			return $"{Name} ({Children.Count})";
+			return $"{Folder.Path} ({Children.Count})";
 		}
 	}
 }

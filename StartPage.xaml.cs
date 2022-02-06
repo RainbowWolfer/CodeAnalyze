@@ -23,7 +23,9 @@ namespace CodeAnalyze {
 		}
 
 		private async void Button_Tapped(object sender, TappedRoutedEventArgs e) {
-			FolderPicker pick = new FolderPicker() { FileTypeFilter = { "*" } };
+			FolderPicker pick = new FolderPicker() {
+				FileTypeFilter = { "*" },
+			};
 			StorageFolder result = await pick.PickSingleFolderAsync();
 			if(result != null) {
 				(Window.Current.Content as Frame).Navigate(typeof(MainPage), result, new DrillInNavigationTransitionInfo());

@@ -13,7 +13,7 @@ namespace CodeAnalyze.Services {
 	public static class SetsManager {
 		public static StorageFile File { get; private set; }
 		private static StorageFolder LocalFolder => ApplicationData.Current.LocalFolder;
-		private const string FILENAME = "IgoresList.json";
+		private const string FILENAME = "SetsList.json";
 
 		public static List<Set> SetsList { get; private set; }
 
@@ -56,6 +56,16 @@ namespace CodeAnalyze.Services {
 			return true;
 		}
 
+		//public static async Task Rename(string original, string newName) {
+		//	Set found = SetsList.Find(s => s.Name == original);
+		//	if(found == null) {
+		//		return false;
+		//	}
+		//	found.Name = newName;
+		//	await Save();
+		//	return true;
+		//}
+
 		public static async Task<int> Remove(string name) {
 			int result = SetsList.RemoveAll(i => i.Name == name);
 			await Save();
@@ -71,27 +81,17 @@ namespace CodeAnalyze.Services {
 			return new List<Set>() {
 				new Set("Visual Studio For UWP"){
 					Files = new List<string> {
-						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
+						".cs", ".xaml"
 					}
 				},
-				new Set("Visual Studio For UWP"){
+				new Set("Java"){
 					Files = new List<string> {
-						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
+						".java", ".xml"
 					}
 				},
-				new Set("Visual Studio For UWP"){
+				new Set("React"){
 					Files = new List<string> {
-						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
-					}
-				},
-				new Set("Visual Studio For UWP"){
-					Files = new List<string> {
-						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
-					}
-				},
-				new Set("Visual Studio For UWP"){
-					Files = new List<string> {
-						".editorconfig", ".gitattributes", ".gitignore", ".csproj", ".user", ".sln", ".pfx", ".appxmanifest", ".xml"
+						".ts", ".tsx", ".js", ".xml", ".json"
 					}
 				},
 			};

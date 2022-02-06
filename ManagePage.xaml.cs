@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -22,32 +23,68 @@ using Windows.UI.Xaml.Navigation;
 
 namespace CodeAnalyze {
 	public sealed partial class ManagePage: Page {
+		public static ManagePage Instance { get; private set; }
 		public ObservableCollection<Set> Sets { get; } = new ObservableCollection<Set>();
 		public ObservableCollection<FolderItem> Items { get; } = new ObservableCollection<FolderItem>();
+		public Dictionary<string, long> FilesTypeCount { get; private set; } = new Dictionary<string, long>();
 		public FolderItem Root { get; private set; }
 		public static Set CurrentSet { get; private set; }
 		public static Button FileTypeInputAddButton { get; private set; }
 
 		public ManagePage() {
+			Instance = this;
 			this.InitializeComponent();
 			this.NavigationCacheMode = NavigationCacheMode.Required;
+			this.DataContextChanged += (s, e) => Bindings.Update();
 			Initialize();
 		}
 
 		private async void Initialize() {
-			LoadingRing.IsActive = true;
+			SetsLoadingRing.IsActive = true;
 			await SetsManager.ReadLocal();
 			ReloadFromSets();
-			LoadingRing.IsActive = false;
+			SetsLoadingRing.IsActive = false;
 		}
 
 		protected override async void OnNavigatedTo(NavigationEventArgs e) {
 			base.OnNavigatedTo(e);
 			if(e.Parameter is StorageFolder folder) {
-				this.Root = new FolderItem(folder);
+				FilesStatisticsLoadingRing.IsActive = true;
+				FoldersLoadingPanel.Visibility = Visibility.Visible;
+				FilesTypeCount.Clear();
 				Items.Clear();
-				await ReadSubFolders(null, folder);
+				FolderTreeView.ItemsSource = null;
+				this.Root = new FolderItem(folder) {
+					IsExpanded = true,
+				};
+				Items.Add(Root);
+				await ReadSubFolders(Root, folder);
 				FolderTreeView.ItemsSource = Items;
+				FoldersLoadingPanel.Visibility = Visibility.Collapsed;
+				UpdateFilesTypeCount();
+				FilesStatisticsLoadingRing.IsActive = false;
+			}
+		}
+
+		public void UpdateFilesTypeCount() {
+			FilesStatisticsPanel.Children.Clear();
+			foreach(var item in FilesTypeCount.OrderByDescending(o => o.Value).Take(10)) {
+				Grid grid = new Grid();
+				grid.ColumnDefinitions.Add(new ColumnDefinition());
+				grid.ColumnDefinitions.Add(new ColumnDefinition());
+				TextBlock key = new TextBlock() {
+					Text = item.Key,
+					TextAlignment = TextAlignment.Right,
+					Margin = new Thickness(0, 0, 10, 0),
+				};
+				TextBlock value = new TextBlock() {
+					Text = $"{item.Value}",
+					Margin = new Thickness(20, 0, 0, 0),
+				};
+				Grid.SetColumn(value, 1);
+				grid.Children.Add(key);
+				grid.Children.Add(value);
+				FilesStatisticsPanel.Children.Add(grid);
 			}
 		}
 
@@ -81,21 +118,28 @@ namespace CodeAnalyze {
 			return FileTypeInputsListView.Items.Cast<FileTypeInput>().Where(i => !i.model.IsAdd).Select(i => i.model.Input).ToList();
 		}
 
-		public List<FolderItem> GetSelected() {
-			return FolderTreeView.SelectedItems.Cast<FolderItem>().Append(Root).ToList();
+		public static List<FolderItem> GetSelected() {
+			return Instance.FolderTreeView.SelectedItems.Cast<FolderItem>().Append(Instance.Root).ToList();
 		}
 
 		private async Task ReadSubFolders(FolderItem parent, StorageFolder folder) {
 			foreach(StorageFolder item in await folder.GetFoldersAsync()) {
 				FolderItem sub = new FolderItem(item);
-				if(parent == null) {
-					Items.Add(sub);
-					this.Root.Children.Add(sub);
-				} else {
-					parent.Children.Add(sub);
-				}
+				FoldersLoadingText.Text = $"Loading Sub Files: {item.Path}";
+				await ReadFiles(sub);
+				parent.Children.Add(sub);
+				FoldersLoadingText.Text = $"Loading Sub Folders: {item.Path}";
 				await ReadSubFolders(sub, item);
-				FolderTreeView.UpdateLayout();
+			}
+		}
+
+		private async Task ReadFiles(FolderItem item) {
+			foreach(StorageFile file in await item.Folder.GetFilesAsync()) {
+				if(FilesTypeCount.ContainsKey(file.FileType)) {
+					FilesTypeCount[file.FileType]++;
+				} else {
+					FilesTypeCount.Add(file.FileType, 1);
+				}
 			}
 		}
 
@@ -108,6 +152,7 @@ namespace CodeAnalyze {
 
 		private void SetsListViewItemPanel_RightTapped(object sender, RightTappedRoutedEventArgs e) {
 			FrameworkElement element = sender as FrameworkElement;
+			string name = element.Tag as string;
 			MenuFlyout flyout = new MenuFlyout() {
 				Placement = FlyoutPlacementMode.Bottom,
 			};
@@ -115,12 +160,28 @@ namespace CodeAnalyze {
 				Icon = new FontIcon() { Glyph = "\uE74D" },
 				Text = "Delete",
 			};
+			MenuFlyoutItem item_rename = new MenuFlyoutItem() {
+				Icon = new FontIcon() { Glyph = "\uE104" },
+				Text = "Rename",
+			};
 			item_delete.Click += async (s, args) => {
-				string name = element.Tag as string;
 				Sets.Remove(Sets.Where(set => set.Name == name).FirstOrDefault());
 				await SetsManager.Remove(name);
 			};
+			item_rename.Click += async (s, args) => {
+				ContentDialog dialog = new ContentDialog() {
+					Title = $"Rename ({name})"
+				};
+				InputTextDialog content = new InputTextDialog(dialog, Sets.Select(set => set.Name), name);
+				dialog.Content = content;
+				await dialog.ShowAsync();
+				if(content.Accept) {
+					Sets.Where(set => set.Name == name).FirstOrDefault().Name = content.InputText;
+					await SetsManager.Save();
+				}
+			};
 			flyout.Items.Add(item_delete);
+			flyout.Items.Add(item_rename);
 			flyout.ShowAt(element, e.GetPosition(element));
 		}
 
@@ -145,6 +206,31 @@ namespace CodeAnalyze {
 				await SetsManager.Add(newSet);
 			}
 			AddSetButton.IsEnabled = true;
+		}
+
+		private async void TextBlock_Loaded(object sender, RoutedEventArgs e) {
+			var text = (TextBlock)sender;
+			var folder = (StorageFolder)text.Tag;
+			IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
+			text.Text = $"{files.Count()}";
+		}
+
+		private void StartButton_Tapped(object sender, TappedRoutedEventArgs e) {
+			var selected = GetSelected();
+			var set = CurrentSet;
+			if(selected.Where(s => s != Root).Count() == 0) {
+				NoFoldersSelectedTip.IsOpen = true;
+				return;
+			} else if(set.Files.Count == 0) {
+				NoFileTypeInputTip.Target = FileTypeInputsListView.Items.Cast<FileTypeInput>().LastOrDefault();
+				NoFileTypeInputTip.IsOpen = true;
+				return;
+			} else if(set.Files.Any(f => string.IsNullOrWhiteSpace(f))) {
+				EmptyFileTypeInputTip.Target = FileTypeInputsListView.Items.Cast<FileTypeInput>().FirstOrDefault(f => string.IsNullOrWhiteSpace(f.model.Input));
+				EmptyFileTypeInputTip.IsOpen = true;
+				return;
+			}
+			MainPage.Instance.NavigateTo(PageType.Result, new AnalyzePamameters(Root, set, selected));
 		}
 	}
 }
