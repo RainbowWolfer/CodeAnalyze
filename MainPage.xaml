@@ -18,7 +18,13 @@
 		<controls:NavigationView.PaneFooter>
 			<StackPanel Orientation="Horizontal" Height="50">
 				<TextBlock x:Name="RootText" Text="Hello g world" VerticalAlignment="Center" Margin="10" FontSize="18"/>
-				<Button x:Name="SelectButton" RelativePanel.AlignRightWithPanel="True" Margin="10" Tapped="SelectButton_Tapped">
+				<Button x:Name="OpenInExplorerButton" RelativePanel.AlignRightWithPanel="True" Margin="10" Height="30" Padding="11,0,11,0" Tapped="OpenInExplorerButton_Tapped">
+					<StackPanel Orientation="Horizontal">
+						<FontIcon Glyph="&#xEC50;" FontSize="16"/>
+						<TextBlock Text="Open in Exporer" Margin="10,0,0,0" FontSize="15"/>
+					</StackPanel>
+				</Button>
+				<Button x:Name="SelectButton" RelativePanel.AlignRightWithPanel="True" Margin="10" Tapped="SelectButton_Tapped" Height="30" Padding="11,0,11,0">
 					<StackPanel Orientation="Horizontal">
 						<FontIcon Glyph="&#xE15E;" FontSize="16"/>
 						<TextBlock Text="Select" Margin="10,0,0,0" FontSize="15"/>
@@ -26,9 +32,9 @@
 				</Button>
 			</StackPanel>
 		</controls:NavigationView.PaneFooter>
-		<controls:NavigationView.FooterMenuItems>
+		<!--<controls:NavigationView.FooterMenuItems>
 			<controls:NavigationViewItem Content="Help" Tag="2" Icon="Help"/>
-		</controls:NavigationView.FooterMenuItems>
+		</controls:NavigationView.FooterMenuItems>-->
 		<controls:NavigationView.Content>
 			<Frame x:Name="MainFrame" Grid.Row="1">
 				<Frame.ContentTransitions>

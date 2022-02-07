@@ -15,6 +15,7 @@
 			<Setter Property="HorizontalAlignment" Value="Center"/>
 			<Setter Property="VerticalAlignment" Value="Center"/>
 			<Setter Property="FontSize" Value="20"/>
+			<Setter Property="Margin" Value="3,0,3,0"/>
 		</Style>
 		<Style x:Key="ListViewItemText" TargetType="TextBlock">
 			<Setter Property="HorizontalAlignment" Value="Center"/>
@@ -30,6 +31,13 @@
 				</Setter.Value>
 			</Setter>
 		</Style>
+		<Storyboard x:Name="DetailPanelAnimation">
+			<DoubleAnimation EnableDependentAnimation="True" Storyboard.TargetName="DetailPanel" Storyboard.TargetProperty="Width">
+				<DoubleAnimation.EasingFunction>
+					<ExponentialEase Exponent="7" EasingMode="EaseOut" />
+				</DoubleAnimation.EasingFunction>
+			</DoubleAnimation>
+		</Storyboard>
 	</Page.Resources>
 
 	<Grid>
@@ -38,61 +46,102 @@
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 		<Grid Margin="5">
-			<TextBlock x:Name="SetName" d:Text="Visual Studio For UWP" HorizontalAlignment="Left" FontSize="24" Margin="20,0,0,0"/>
-			<TextBlock x:Name="FilesCountText" d:Text="Files Scanned : 21392" FontSize="24" HorizontalAlignment="Right" Margin="0,0,20,0"/>
+			<TextBlock x:Name="SetName" d:Text="Visual Studio For UWP" Text="You have not started" HorizontalAlignment="Left" FontSize="24" Margin="20,0,0,0"/>
+			<TextBlock x:Name="FilesCountText" d:Text="Files Scanned : 21392" FontSize="24" HorizontalAlignment="Right" Margin="0,0,130,0"/>
+			<Button x:Name="DetailExpanderButton" HorizontalAlignment="Right" Margin="0,0,10,0" Tapped="DetailExpanderButton_Tapped">
+				<StackPanel Orientation="Horizontal">
+					<FontIcon x:Name="DetailExpanderIcon" Glyph="&#xE1BF;" FontSize="16" Margin="0,2,0,0"/>
+					<TextBlock Text="Details" Margin="10,0,0,0" FontSize="16"/>
+				</StackPanel>
+			</Button>
 		</Grid>
-		<StackPanel x:Name="LoadingPanel" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
-			<ProgressRing x:Name="LoadingRing" Height="100" Width="100" Margin="10" IsActive="True"/>
-			<TextBlock x:Name="LoadingText" d:Text="Hello World" Margin="10" TextAlignment="Center" TextWrapping="Wrap"/>
-		</StackPanel>
-		<Grid Grid.Row="1" Margin="10" BorderBrush="Gray" BorderThickness="3" CornerRadius="20">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="auto"/>
-				<RowDefinition Height="*"/>
-			</Grid.RowDefinitions>
-			<Grid Margin="15,5,15,5">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="0.5*"/>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="1.5*"/>
-					<ColumnDefinition Width="1.5*"/>
-				</Grid.ColumnDefinitions>
-				<TextBlock Text="Index" Style="{StaticResource ListViewTitleText}"/>
-				<TextBlock Text="Name" Grid.Column="1" Style="{StaticResource ListViewTitleText}"/>
-				<TextBlock Text="Percentage" Grid.Column="2" Style="{StaticResource ListViewTitleText}"/>
-				<TextBlock Text="Line Of Code" Grid.Column="3" Style="{StaticResource ListViewTitleText}"/>
-				<TextBlock Text="Most File" Grid.Column="4" Style="{StaticResource ListViewTitleText}"/>
-				<TextBlock Text="Most Folder" Grid.Column="5" Style="{StaticResource ListViewTitleText}"/>
+		<Grid Grid.Row="1" >
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="auto"/>
+			</Grid.ColumnDefinitions>
+			<Grid x:Name="DetailPanel" Grid.Column="1" Padding="10" d:Width="250" Width="0">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="auto"/>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="auto"/>
+				</Grid.RowDefinitions>
+				<StackPanel>
+					<TextBlock Text="Total Line of Code:" FontSize="16"/>
+					<TextBlock x:Name="TotalLocText" Text="..." HorizontalAlignment="Right" FontSize="32"/>
+				</StackPanel>
+				<TextBlock Text="Output:" Grid.Row="2" FontSize="22" TextDecorations="Underline"/>
+				<ListView x:Name="OutputListView" Height="250" Grid.Row="2" SelectionMode="None" IsItemClickEnabled="True" ItemsSource="{x:Bind outputs}" d:ItemsSource="1 2 3" Margin="0,35,0,0">
+					<ListView.ItemContainerStyle>
+						<Style TargetType="ListViewItem">
+							<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+							<Setter Property="Padding" Value="10,2,5,2"/>
+						</Style>
+					</ListView.ItemContainerStyle>
+					<ListView.ItemTemplate>
+						<DataTemplate x:DataType="x:String">
+							<TextBlock Text="{x:Bind ToString()}" d:Text="HelloWorld" TextWrapping="Wrap" MaxLines="4" Margin="0,2,0,2" Width="220"/>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
 			</Grid>
-			<ListView SelectionMode="None" IsItemClickEnabled="True" ItemsSource="{x:Bind Items}" d:ItemsSource="1 2 3" Grid.Row="1" Margin="5">
-				<ListView.ItemContainerStyle>
-					<Style TargetType="ListViewItem">
-						<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-					</Style>
-				</ListView.ItemContainerStyle>
-				<ListView.ItemTemplate>
-					<DataTemplate x:DataType="local:LineOfCodeListViewItem">
-						<Grid>
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="0.5*"/>
-								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="1.5*"/>
-								<ColumnDefinition Width="1.5*"/>
-							</Grid.ColumnDefinitions>
-							<TextBlock d:Text="1" Text="{x:Bind IndexDisplay}" Style="{StaticResource ListViewItemText}"/>
-							<TextBlock d:Text=".cs" Text="{x:Bind Name}" Grid.Column="1" Style="{StaticResource ListViewItemText}"/>
-							<controls:ProgressBar Grid.Column="2" d:Value="0.7" Minimum="0" Maximum="1" Margin="5" d:ToolTipService.ToolTip="{x:Bind PercentageString}" Value="{x:Bind Percentage}"/>
-							<TextBlock d:Text="29102" Text="{x:Bind LineOfCode}" Grid.Column="3" Style="{StaticResource ListViewItemText}"/>
-							<TextBlock d:Text="Test.cs - 1200" Text="{x:Bind MostFile}" Grid.Column="4" Style="{StaticResource ListViewItemText}"/>
-							<TextBlock d:Text="\Debug\ - 209" Text="{x:Bind MostFolder}" Grid.Column="5" Style="{StaticResource ListViewItemText}"/>
-						</Grid>
-					</DataTemplate>
-				</ListView.ItemTemplate>
-			</ListView>
+			<StackPanel x:Name="LoadingPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+				<ProgressRing x:Name="LoadingRing" Height="100" Width="100" Margin="10" IsActive="True"/>
+				<TextBlock x:Name="LoadingText" d:Text="Hello World" Margin="10" TextAlignment="Center" TextWrapping="Wrap"/>
+			</StackPanel>
+			<Grid Margin="10" BorderBrush="Gray" BorderThickness="3" CornerRadius="20">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="auto"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+				<Grid Margin="15,5,15,5">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="0.4*"/>
+						<ColumnDefinition Width="0.7*"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="0.9*"/>
+						<ColumnDefinition Width="1.5*"/>
+						<ColumnDefinition Width="1.5*"/>
+					</Grid.ColumnDefinitions>
+					<TextBlock Text="Index" Style="{StaticResource ListViewTitleText}"/>
+					<TextBlock Text="Name" Grid.Column="1" Style="{StaticResource ListViewTitleText}"/>
+					<TextBlock Text="Percentage" Grid.Column="2" Style="{StaticResource ListViewTitleText}"/>
+					<TextBlock Text="Line of Code" Grid.Column="3" Style="{StaticResource ListViewTitleText}"/>
+					<TextBlock Text="Files Amount" Grid.Column="4" Style="{StaticResource ListViewTitleText}"/>
+					<TextBlock Text="Most File" Grid.Column="5" Style="{StaticResource ListViewTitleText}"/>
+					<TextBlock Text="Most Folder" Grid.Column="6" Style="{StaticResource ListViewTitleText}"/>
+				</Grid>
+				<ListView SelectionMode="None" IsItemClickEnabled="True" ItemsSource="{x:Bind Items}" d:ItemsSource="1 2 3" Grid.Row="1" Margin="5">
+					<ListView.ItemContainerStyle>
+						<Style TargetType="ListViewItem">
+							<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+						</Style>
+					</ListView.ItemContainerStyle>
+					<ListView.ItemTemplate>
+						<DataTemplate x:DataType="local:LineOfCodeListViewItem">
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="0.4*"/>
+									<ColumnDefinition Width="0.7*"/>
+									<ColumnDefinition Width="*"/>
+									<ColumnDefinition Width="*"/>
+									<ColumnDefinition Width="0.9*"/>
+									<ColumnDefinition Width="1.5*"/>
+									<ColumnDefinition Width="1.5*"/>
+								</Grid.ColumnDefinitions>
+								<TextBlock d:Text="1" Text="{x:Bind IndexDisplay}" Style="{StaticResource ListViewItemText}"/>
+								<TextBlock d:Text=".cs" Text="{x:Bind Name}" Grid.Column="1" Style="{StaticResource ListViewItemText}"/>
+								<controls:ProgressBar Grid.Column="2" d:Value="0.7" Minimum="0" Maximum="1" Margin="5" d:ToolTipService.ToolTip="{x:Bind PercentageString}" Value="{x:Bind Percentage}"/>
+								<TextBlock d:Text="29102" Text="{x:Bind LineOfCode}" Grid.Column="3" Style="{StaticResource ListViewItemText}"/>
+								<TextBlock d:Text="132" Text="{x:Bind FilesAmount}" Grid.Column="4" Style="{StaticResource ListViewItemText}"/>
+								<TextBlock d:Text="Test.cs - 1200" Text="{x:Bind MostFile}" Grid.Column="5" Style="{StaticResource ListViewItemText}"/>
+								<TextBlock d:Text="\Debug\ - 209" Text="{x:Bind MostFolder}" Grid.Column="6" Style="{StaticResource ListViewItemText}"/>
+							</Grid>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
+			</Grid>
 		</Grid>
 	</Grid>
 </Page>

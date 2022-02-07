@@ -1,6 +1,7 @@
 ﻿using CodeAnalyze.Models;
 using CodeAnalyze.Services;
 using CodeAnalyze.Views;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,6 +21,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using TreeViewItem = Microsoft.UI.Xaml.Controls.TreeViewItem;
 
 namespace CodeAnalyze {
 	public sealed partial class ManagePage: Page {
@@ -41,7 +43,7 @@ namespace CodeAnalyze {
 
 		private async void Initialize() {
 			SetsLoadingRing.IsActive = true;
-			await SetsManager.ReadLocal();
+			await Local.ReadSets();
 			ReloadFromSets();
 			SetsLoadingRing.IsActive = false;
 		}
@@ -91,10 +93,7 @@ namespace CodeAnalyze {
 		public void UpdateFileTypeInputs(Set set) {
 			FileTypeInputsListView.Items.Clear();
 			foreach(string item in set.Files) {
-				FileTypeInputsListView.Items.Add(new FileTypeInput(this, new FileTypeInputModel(false, set, item), async newInput => {
-					CurrentSet.Files = GetCurrentSetInputs();
-					await SetsManager.UpdateSet(CurrentSet);
-				}));
+				FileTypeInputsListView.Items.Add(new FileTypeInput(this, new FileTypeInputModel(false, set, item), OnInputChanged()));
 			}
 			var add = new FileTypeInput(this, new FileTypeInputModel(true));
 			FileTypeInputsListView.Items.Add(add);
@@ -102,16 +101,20 @@ namespace CodeAnalyze {
 		}
 
 		public void AddEmptyFileTypeInput() {
-			FileTypeInputsListView.Items.Insert(FileTypeInputsListView.Items.Count - 1, new FileTypeInput(this, new FileTypeInputModel(false, CurrentSet), async newInput => {
+			FileTypeInputsListView.Items.Insert(FileTypeInputsListView.Items.Count - 1, new FileTypeInput(this, new FileTypeInputModel(false, CurrentSet), OnInputChanged()));
+		}
+
+		private Action<string> OnInputChanged() {
+			return async newInput => {
 				CurrentSet.Files = GetCurrentSetInputs();
-				await SetsManager.UpdateSet(CurrentSet);
-			}));
+				await Local.UpdateSet(CurrentSet);
+			};
 		}
 
 		public async Task RemoveFileTypeInput(FileTypeInput input) {
 			FileTypeInputsListView.Items.Remove(input);
 			CurrentSet.Files = GetCurrentSetInputs();
-			await SetsManager.UpdateSet(CurrentSet);
+			await Local.UpdateSet(CurrentSet);
 		}
 
 		public List<string> GetCurrentSetInputs() {
@@ -123,6 +126,10 @@ namespace CodeAnalyze {
 		}
 
 		private async Task ReadSubFolders(FolderItem parent, StorageFolder folder) {
+			if(Local.IgnoreFolders.Contains(parent.Name)) {
+				FoldersLoadingText.Text = $"Ignore Folder: {folder.Path}";
+				return;
+			}
 			foreach(StorageFolder item in await folder.GetFoldersAsync()) {
 				FolderItem sub = new FolderItem(item);
 				FoldersLoadingText.Text = $"Loading Sub Files: {item.Path}";
@@ -145,7 +152,7 @@ namespace CodeAnalyze {
 
 		private void ReloadFromSets() {
 			Sets.Clear();
-			foreach(Set item in SetsManager.SetsList) {
+			foreach(Set item in Local.SetsList) {
 				Sets.Add(item);
 			}
 		}
@@ -166,7 +173,7 @@ namespace CodeAnalyze {
 			};
 			item_delete.Click += async (s, args) => {
 				Sets.Remove(Sets.Where(set => set.Name == name).FirstOrDefault());
-				await SetsManager.Remove(name);
+				await Local.RemoveSet(name);
 			};
 			item_rename.Click += async (s, args) => {
 				ContentDialog dialog = new ContentDialog() {
@@ -177,7 +184,7 @@ namespace CodeAnalyze {
 				await dialog.ShowAsync();
 				if(content.Accept) {
 					Sets.Where(set => set.Name == name).FirstOrDefault().Name = content.InputText;
-					await SetsManager.Save();
+					await Local.SaveSets();
 				}
 			};
 			flyout.Items.Add(item_delete);
@@ -203,7 +210,7 @@ namespace CodeAnalyze {
 			if(content.Accept) {
 				var newSet = new Set(content.InputText);
 				Sets.Add(newSet);
-				await SetsManager.Add(newSet);
+				await Local.AddSet(newSet);
 			}
 			AddSetButton.IsEnabled = true;
 		}
@@ -211,13 +218,18 @@ namespace CodeAnalyze {
 		private async void TextBlock_Loaded(object sender, RoutedEventArgs e) {
 			var text = (TextBlock)sender;
 			var folder = (StorageFolder)text.Tag;
-			IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
-			text.Text = $"{files.Count()}";
+			if(Local.IgnoreFolders.Contains(folder.Name)) {
+				text.Text = "Ignored";
+			} else {
+				IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
+				text.Text = $"{files.Count()}";
+			}
 		}
 
 		private void StartButton_Tapped(object sender, TappedRoutedEventArgs e) {
-			var selected = GetSelected();
-			var set = CurrentSet;
+			List<FolderItem> selected = GetSelected();
+			selected = selected.Where(i => !Local.IgnoreFolders.Contains(i.Name)).ToList();
+			Set set = CurrentSet;
 			if(selected.Where(s => s != Root).Count() == 0) {
 				NoFoldersSelectedTip.IsOpen = true;
 				return;
@@ -230,7 +242,33 @@ namespace CodeAnalyze {
 				EmptyFileTypeInputTip.IsOpen = true;
 				return;
 			}
+
+			bool accept = false;
+
+			foreach(string item in FilesTypeCount.Select(s => s.Key)) {
+				foreach(string input in set.Files) {
+					if(input == item) {
+						accept = true;
+					}
+				}
+			}
+
+			if(!accept) {
+				UnacceptedFileTypeInputTip.IsOpen = true;
+				return;
+			}
+
 			MainPage.Instance.NavigateTo(PageType.Result, new AnalyzePamameters(Root, set, selected));
+		}
+
+		private void TreeViewItem_Loaded(object sender, RoutedEventArgs e) {
+			var item = sender as TreeViewItem;
+			var folderName = item.Tag as string;
+			if(Local.IgnoreFolders.Contains(folderName)) {
+				item.IsEnabled = false;
+			} else {
+				item.IsEnabled = true;
+			}
 		}
 	}
 }

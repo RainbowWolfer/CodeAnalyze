@@ -40,7 +40,6 @@ namespace CodeAnalyze.Models {
 			}
 		}
 
-
 		public FolderItem(StorageFolder folder) {
 			Folder = folder;
 			Children = new List<FolderItem>();

@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CodeAnalyze.Services;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -20,6 +22,8 @@ namespace CodeAnalyze {
 		public App() {
 			this.InitializeComponent();
 			this.Suspending += OnSuspending;
+			Debug.WriteLine(Local.LocalFolder.Path);
+			Local.Initialize();
 		}
 
 		protected override void OnLaunched(LaunchActivatedEventArgs e) {

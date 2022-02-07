@@ -21,10 +21,15 @@ using NavigationViewItemInvokedEventArgs = Microsoft.UI.Xaml.Controls.Navigation
 using NavigationView = Microsoft.UI.Xaml.Controls.NavigationView;
 using NavigationViewItem = Windows.UI.Xaml.Controls.NavigationViewItem;
 using Windows.Storage.Pickers;
+using Windows.System;
+using Windows.UI.ViewManagement;
 
 namespace CodeAnalyze {
 	public sealed partial class MainPage: Page {
 		public static MainPage Instance;
+
+		public StorageFolder TargetFolder { get; private set; }
+
 		public MainPage() {
 			Instance = this;
 			this.InitializeComponent();
@@ -33,6 +38,7 @@ namespace CodeAnalyze {
 		protected override void OnNavigatedTo(NavigationEventArgs e) {
 			base.OnNavigatedTo(e);
 			if(e.Parameter is StorageFolder folder) {
+				TargetFolder = folder;
 				RootText.Text = folder.Path;
 				MainFrame.Navigate(typeof(ManagePage), folder, new EntranceNavigationTransitionInfo());
 			}
@@ -68,9 +74,6 @@ namespace CodeAnalyze {
 				case PageType.Result:
 					MainFrame.Navigate(typeof(ResultPage), parameter, new EntranceNavigationTransitionInfo());
 					break;
-				case PageType.Help:
-					MainFrame.Navigate(typeof(HelpPage), parameter, new EntranceNavigationTransitionInfo());
-					break;
 				case PageType.Settings:
 					MainFrame.Navigate(typeof(SettingsPage), parameter, new EntranceNavigationTransitionInfo());
 					break;
@@ -78,9 +81,18 @@ namespace CodeAnalyze {
 					throw new Exception($"({type}) is not defined.");
 			}
 		}
+
+		private async void OpenInExplorerButton_Tapped(object sender, TappedRoutedEventArgs e) {
+			if(TargetFolder == null) {
+				return;
+			}
+			await Launcher.LaunchFolderAsync(TargetFolder, new FolderLauncherOptions() {
+				DesiredRemainingView = ViewSizePreference.UseMore
+			});
+		}
 	}
 
 	public enum PageType {
-		Manage = 0, Result = 1, Help = 2, Settings = 3
+		Manage = 0, Result = 1, Settings = 2
 	}
 }

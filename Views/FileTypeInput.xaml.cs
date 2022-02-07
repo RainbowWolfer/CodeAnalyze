@@ -40,6 +40,7 @@ namespace CodeAnalyze.Views {
 				if(value) {
 					Box.Focus(FocusState.Keyboard);
 					Box.Text = model.Input;
+					Box.SelectionStart = model.Input.Length;
 				} else {
 					string newInput = Box.Text.ToLower().Trim();
 					if(newInput != model.Input) {

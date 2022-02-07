@@ -7,15 +7,15 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="9e72333e-f5e1-490a-aefa-909b4f632ed7"
-    Publisher="CN=rainb"
+    Name="25737563C6D7A.CodesAnalyzer"
+    Publisher="CN=08AE6180-69D9-4F58-9803-4063AA29A554"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="9e72333e-f5e1-490a-aefa-909b4f632ed7" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="5ae0a1c4-2a29-4da8-aac9-2395203a62f2" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>CodeAnalyze</DisplayName>
-    <PublisherDisplayName>rainb</PublisherDisplayName>
+    <DisplayName>Codes Analyzer</DisplayName>
+    <PublisherDisplayName>蔚家旭</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -32,12 +32,12 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="CodeAnalyze.App">
       <uap:VisualElements
-        DisplayName="CodeAnalyze"
+        DisplayName="Codes Analyzer"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
         Description="CodeAnalyze"
         BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
     </Application>

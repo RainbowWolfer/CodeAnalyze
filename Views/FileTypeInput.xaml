@@ -14,7 +14,7 @@
 		<Grid x:Name="MainGrid" Visibility="{x:Bind InputVisibility}" PointerEntered="Grid_PointerEntered" PointerExited="Grid_PointerExited" Tapped="Grid_Tapped" BorderBrush="Red" CornerRadius="5" RightTapped="MainGrid_RightTapped">
 			<Rectangle Fill="Gray" Opacity="0.1"/>
 			<TextBlock x:Name="Block" Text="Hello" HorizontalAlignment="Center" TextAlignment="Center" VerticalAlignment="Center"/>
-			<TextBox x:Name="Box" LostFocus="Box_LostFocus" PreviewKeyDown="Box_PreviewKeyDown"/>
+			<TextBox x:Name="Box" LostFocus="Box_LostFocus" PreviewKeyDown="Box_PreviewKeyDown" TextAlignment="Center"/>
 		</Grid>
 		<Grid Visibility="{x:Bind AddButtonVisibility}" d:Visibility="Collapsed">
 			<Button x:Name="AddButton" Tapped="AddButton_Tapped" HorizontalAlignment="Stretch">

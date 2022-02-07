@@ -6,9 +6,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    d:RequestedTheme="Dark"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-
-    </Grid>
+		<TextBlock Text="Hello World" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="40"/>
+	</Grid>
 </Page>

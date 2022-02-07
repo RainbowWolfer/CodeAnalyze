@@ -1,7 +1,9 @@
 ﻿using CodeAnalyze.Models;
+using CodeAnalyze.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -15,19 +17,26 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 namespace CodeAnalyze {
 	public sealed partial class ResultPage: Page {
+		private readonly ObservableCollection<string> outputs = new ObservableCollection<string>();
 		private readonly List<FolderInfo> allFolders = new List<FolderInfo>();
 		private readonly List<FileTypeInfo> infos = new List<FileTypeInfo>();
 		private readonly Dictionary<string, LineOfCodeInfo> lineOfCodeByTypes = new Dictionary<string, LineOfCodeInfo>();
 
 		public ObservableCollection<LineOfCodeListViewItem> Items { get; } = new ObservableCollection<LineOfCodeListViewItem>();
 
+		private bool isDetailPanelOpen = false;
+
 		public ResultPage() {
 			this.InitializeComponent();
 			this.NavigationCacheMode = NavigationCacheMode.Required;
+			outputs.CollectionChanged += (s, e) => {
+				OutputListView.ScrollIntoView(OutputListView.Items.LastOrDefault());
+			};
 		}
 
 		protected override async void OnNavigatedTo(NavigationEventArgs e) {
@@ -41,12 +50,16 @@ namespace CodeAnalyze {
 		}
 
 		private async Task Analyze(AnalyzePamameters pamameters) {
+			outputs.Clear();
 			Items.Clear();
 			allFolders.Clear();
 			infos.Clear();
 			lineOfCodeByTypes.Clear();
 			ReadAllItems(pamameters.Root, pamameters.Folders);
 			LoadingText.Text = "Start Loading";
+			TotalLocText.Text = "Counting...";
+			FilesCountText.Text = "";
+			Output("Start Loading");
 			foreach(FolderInfo folder in allFolders) {
 				foreach(StorageFile file in await folder.Folder.GetFilesAsync()) {
 					string name = null;
@@ -59,15 +72,24 @@ namespace CodeAnalyze {
 						}
 					})) {
 						LoadingText.Text = $"Reading Lines of {file.Path}";
-						IList<string> lines = await FileIO.ReadLinesAsync(file);
-						infos.Add(new FileTypeInfo(name, file, folder.Folder, lines.Count));
-						folder.SubmitFile(name, lines.Count);
+						try {
+							List<string> lines = (await FileIO.ReadLinesAsync(file)).ToList();
+							if(Local.LocalSettings?.SkipEmptyLine ?? false) {
+								lines = lines.Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+							}
+							infos.Add(new FileTypeInfo(name, file, folder.Folder, lines.Count));
+							folder.SubmitFile(name, lines.Count);
+							Output($"Reading file ({file.Name})");
+						} catch(ArgumentOutOfRangeException) {
+							Output($"File ({file.Name}) cannot be read");
+						}
 					} else {
 						continue;
 					}
 				}
 			}
 			FilesCountText.Text = $"Files Scanned: {infos.Count}";
+			Output($"Total Scanned Files: {infos.Count}");
 
 			LoadingText.Text = $"Calculating {infos.Count} Files";
 			foreach(FileTypeInfo item in infos) {
@@ -87,19 +109,24 @@ namespace CodeAnalyze {
 
 			LoadingText.Text = $"Finalizing";
 
-			LineOfCodeInfo[] array = lineOfCodeByTypes.Select(s => s.Value).ToArray();
+			LineOfCodeInfo[] array = lineOfCodeByTypes.Select(s => s.Value).OrderByDescending(i => i.Lines).ToArray();
 			long lines_sum = lineOfCodeByTypes.Select(s => s.Value.Lines).Sum();
+			TotalLocText.Text = $"{lines_sum}";
 			for(int i = 0; i < array.Length; i++) {
 				LineOfCodeInfo item = array[i];
 				Items.Add(new LineOfCodeListViewItem() {
 					Index = i,
 					Name = item.Name,
 					LineOfCode = item.Lines,
+					FilesAmount = infos.Count(f => f.Name == item.Name),
 					MostFile = $"{item.MostFile.Name} - {item.MostFileLine}",
 					MostFolder = MostFolderString(item.Name),
 					Percentage = (double)item.Lines / lines_sum,
 				});
+				//await Task.Delay(20);
 			}
+
+			Output($"Done");
 		}
 
 		private void ReadAllItems(FolderItem root, List<FolderItem> folders) {
@@ -129,6 +156,21 @@ namespace CodeAnalyze {
 				}
 			}
 			return most;
+		}
+
+		private void DetailExpanderButton_Tapped(object sender, TappedRoutedEventArgs e) {
+			DetailPanelAnimation.Children[0].SetValue(DoubleAnimation.FromProperty, DetailPanel.ActualWidth);
+			DetailPanelAnimation.Children[0].SetValue(DoubleAnimation.ToProperty, isDetailPanelOpen ? 0 : 250);
+			isDetailPanelOpen = !isDetailPanelOpen;
+			DetailExpanderIcon.Glyph = isDetailPanelOpen ? "\uE1C0" : "\uE1BF";
+			DetailPanelAnimation.Begin();
+		}
+
+		private void Output(string line, bool warning = false) {
+			outputs.Add(line);
+			if(outputs.Count > 1000) {
+				outputs.RemoveAt(0);
+			}
 		}
 	}
 
@@ -164,6 +206,7 @@ namespace CodeAnalyze {
 		public double Percentage { get; set; }
 		public string PercentageString => $"{(int)(Percentage * 100)}%";
 		public long LineOfCode { get; set; }
+		public long FilesAmount { get; set; }
 		public string MostFile { get; set; }// Test.cs - 820
 		public string MostFolder { get; set; }// /Views/ - 200
 	}

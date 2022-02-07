@@ -77,7 +77,7 @@
 						</Style>
 					</ListView.ItemContainerStyle>
 				</ListView>
-				<controls:Expander Grid.Row="1" HorizontalAlignment="Stretch" Margin="5" HorizontalContentAlignment="Stretch" IsExpanded="True">
+				<controls:Expander x:Name="FileTypesCountExpander" Grid.Row="1" HorizontalAlignment="Stretch" Margin="5" HorizontalContentAlignment="Stretch" IsExpanded="True">
 					<controls:Expander.Header>
 						<Grid>
 							<TextBlock Text="Files Statistics"/>
@@ -102,7 +102,7 @@
 			<controls:TreeView x:Name="FolderTreeView" Grid.Column="2" SelectionMode="Multiple" Margin="5" CanDragItems="False" AllowDrop="False">
 				<controls:TreeView.ItemTemplate>
 					<DataTemplate x:DataType="models:FolderItem">
-						<controls:TreeViewItem ItemsSource="{x:Bind Children}" IsSelected="{x:Bind IsSelected, Mode=TwoWay}" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}">
+						<controls:TreeViewItem ItemsSource="{x:Bind Children}" IsSelected="{x:Bind IsSelected, Mode=TwoWay}" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" Tag="{x:Bind Folder.Name}" Loaded="TreeViewItem_Loaded">
 							<controls:TreeViewItem.Content>
 								<Grid>
 									<TextBlock Text="{x:Bind Name}"/>
@@ -125,6 +125,11 @@
 			</controls:TeachingTip.IconSource>
 		</controls:TeachingTip>
 		<controls:TeachingTip x:Name="EmptyFileTypeInputTip" Title="Warning" Subtitle="The File Type Input is Empty" IsLightDismissEnabled="True" PreferredPlacement="Right">
+			<controls:TeachingTip.IconSource>
+				<controls:SymbolIconSource Symbol="Important"/>
+			</controls:TeachingTip.IconSource>
+		</controls:TeachingTip>
+		<controls:TeachingTip x:Name="UnacceptedFileTypeInputTip" Target="{x:Bind FileTypesCountExpander}" Title="Warning" Subtitle="There is no file type matched. Check your inputs" IsLightDismissEnabled="True" PreferredPlacement="Auto">
 			<controls:TeachingTip.IconSource>
 				<controls:SymbolIconSource Symbol="Important"/>
 			</controls:TeachingTip.IconSource>
