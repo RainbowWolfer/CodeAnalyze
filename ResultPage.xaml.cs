@@ -119,7 +119,7 @@ namespace CodeAnalyze {
 					Name = item.Name,
 					LineOfCode = item.Lines,
 					FilesAmount = infos.Count(f => f.Name == item.Name),
-					MostFile = $"{item.MostFile.Name} - {item.MostFileLine}",
+					MostFile = $"{item.MostFile?.Name ?? "None"} - {item.MostFileLine}",
 					MostFolder = MostFolderString(item.Name),
 					Percentage = (double)item.Lines / lines_sum,
 				});
@@ -140,7 +140,7 @@ namespace CodeAnalyze {
 
 		private string MostFolderString(string name) {
 			var folder = FindMostFolder(name, out long lines);
-			return $"\\{folder.Name}\\ - {lines}";
+			return $"\\{folder?.Name ?? "None"}\\ - {lines}";
 		}
 
 		private StorageFolder FindMostFolder(string name, out long lines) {
